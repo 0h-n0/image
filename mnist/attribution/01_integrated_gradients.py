@@ -1,5 +1,7 @@
 from __future__ import print_function
 import argparse
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -9,7 +11,7 @@ from torchvision import datasets, transforms
 import torchex.nn as exnn
 from torchex import (load,
                      save)
-from torchex.attribute import IntegratedGradients
+from torchex.attribute import IntegratedGradients as IG
 
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
@@ -33,6 +35,8 @@ args = parser.parse_args()
 use_cuda = not args.no_cuda and torch.cuda.is_available()
 
 torch.manual_seed(args.seed)
+if use_cuda:
+    torch.backends.cudnn.benchmark = True
 
 device = torch.device("cuda" if use_cuda else "cpu")
 
@@ -64,11 +68,10 @@ class Net(nn.Module):
             nn.Linear(50, 10),
             nn.LogSoftmax(dim=1)
             )
-            
 
     def forward(self, x):
-        x = self.linear(x)
-        return F.log_softmax(x, dim=1)
+        y = self.linear(x)
+        return F.log_softmax(y, dim=1)
 
 model = Net().to(device)
 
@@ -109,9 +112,29 @@ def test():
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
 
+output = Path('model.hdf5')
+if not output.exists():
+    for epoch in range(1, args.epochs + 1):
+        train(epoch)
+        test()
+    save(model, 'model.hdf5')
 
-for epoch in range(1, args.epochs + 1):
-    train(epoch)
-    test()
+model = load(model, 'model.hdf5')
 
-save(model, '.')
+ig = IG(model)
+ig_loader = torch.utils.data.DataLoader(
+    datasets.MNIST('../data', train=False, transform=transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.1307,), (0.3081,))
+    ])),
+    batch_size=1, shuffle=False, **kwargs)
+
+model.to('cpu')
+model.train()
+for idx, (x, t) in enumerate(ig_loader):
+    print('idx')
+    _x = ig(x)
+    IG.heatmap(_x.squeeze(), '{:05d}-ig.png'.format(idx))
+    IG.heatmap(x.squeeze(), '{:05d}-original.png'.format(idx))    
+    if idx == 10:
+        break
