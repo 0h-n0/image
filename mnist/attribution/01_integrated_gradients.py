@@ -132,11 +132,16 @@ ig_loader = torch.utils.data.DataLoader(
 model.to('cpu')
 model.train()
 for idx, (x, t) in enumerate(ig_loader):
+    x_base = torch.zeros_like(x)
+    x_base.fill_(0)
     output = model(x)
     pred = output.max(1, keepdim=True)[1]
-    _x = ig(x)
+    pred = int(pred)
+    t = int(t)
+    _x = ig(x, t, x_base)
     print(pred, t)
-    IG.heatmap(_x.squeeze(), '{:05d}-ig.png'.format(idx))
+    print(ig.check())
+    IG.heatmap(_x.squeeze(), '{:05d}-ig-pred-{}-t-{}.png'.format(idx, pred, t))
     IG.heatmap(x.squeeze(), '{:05d}-original.png'.format(idx))    
-    if idx == 10:
+    if idx == 1000:
         break
