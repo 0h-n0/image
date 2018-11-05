@@ -132,8 +132,10 @@ ig_loader = torch.utils.data.DataLoader(
 model.to('cpu')
 model.train()
 for idx, (x, t) in enumerate(ig_loader):
-    print('idx')
+    output = model(x)
+    pred = output.max(1, keepdim=True)[1]
     _x = ig(x)
+    print(pred, t)
     IG.heatmap(_x.squeeze(), '{:05d}-ig.png'.format(idx))
     IG.heatmap(x.squeeze(), '{:05d}-original.png'.format(idx))    
     if idx == 10:
