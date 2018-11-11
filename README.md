@@ -5,4 +5,4 @@ This ripository aims to provide a lot of useful examples.
 ## Requirements
 
 * torchex
-  * https://gitlab.com/exwzd/sandbox/kojiono/torchex
+  * https://github.com/0h-n0/torchex.git
