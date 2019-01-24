@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 
-import torchex
+import torchex.nn as exnn
 
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
@@ -54,18 +54,18 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(1, 10, kernel_size=5),
+            exnn.Conv2d(10, kernel_size=5),
             nn.MaxPool2d(2),
             nn.ReLU(),
-            nn.Conv2d(10, 20, kernel_size=5),            
+            exnn.Conv2d(20, kernel_size=5),            
             nn.Dropout2d(),
             nn.MaxPool2d(2),
             nn.ReLU())
         self.linear = nn.Sequential(
-            nn.Linear(320, 50),
+            exnn.Linear(320, 50),
             nn.ReLU(),
             nn.Dropout(),
-            nn.Linear(50, 10),
+            exnn.Linear(50, 10),
             nn.LogSoftmax(dim=1)
             )
             
